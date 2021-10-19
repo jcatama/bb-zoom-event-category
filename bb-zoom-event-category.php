@@ -130,10 +130,21 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			$zoom_url      = bp_zoom_meeting_get_meta( $meeting->id, 'zoom_join_url', true );
 			$event_content = sprintf(
 				__(
-					'Duration: %1$s minutes <p></p><p></p> Join Zoom Meeting: %2$s <p></p><p></p> Meeting ID: %3$s <p></p> Passcode: %4$s',
+					'
+					Duration: %1$s minutes<br>
+					%2$s<br>
+					<p></p>
+					Join Zoom Meeting: %3$s<br>
+					Meeting ID: %4$s<br>
+					Passcode: %5$s<br>
+					',
 					'bb-zoom-event-category'
 				),
-				$meeting->duration, $zoom_url, $meeting->meeting_id, $meeting->password
+				$meeting->duration,
+				$meeting->description,
+				$zoom_url,
+				$meeting->meeting_id,
+				$meeting->password
 			);
 
 			$start_date_time  = explode( 'T', $meeting->start_date );
