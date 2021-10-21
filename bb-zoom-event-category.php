@@ -207,6 +207,15 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			);
 
 			$start_date_time  = explode( 'T', $meeting->start_date );
+
+			if ( 'meeting_occurrence' === $meeting->zoom_type ) {
+				$datetime            = new DateTime( $meeting->start_date );
+				$t_time              = new DateTimeZone( $meeting->timezone );
+				$datetime->setTimezone( $t_time );
+				$start_date_time_tmp = $datetime->format( 'Y-m-d H:i:s' );
+				$start_date_time     = explode( ' ', $start_date_time_tmp );
+			}
+
 			$start_date       = $start_date_time[0];
 			$start_hr_mm_ss   = explode( ':', $start_date_time[1] );
 			$start_hour       = absint($start_hr_mm_ss[0]);
