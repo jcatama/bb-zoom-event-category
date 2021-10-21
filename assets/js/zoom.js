@@ -14,9 +14,10 @@ jQuery(document).ready(function($) {
                 type : 'GET',
                 url  : bbzec.ajaxurl + '?zoom_group_cat=' + $('input#bp-group-zoom-event-category').val(),
                 data : {
-                    action: 'bbzec_save_zoom_group_cat'
+                    action: 'bbzec_save_zoom_group_cat',
+                    nonce:   bbzec.nonce
                 },
-                success: function(data){ /** */ bbzg_button.html( 'Saved!' ); setTimeout(() => { bbzg_button.html( 'Save' ); location.reload();  }, 2000); /** */}
+                success: function(data){ /** */ bbzg_button.html( 'Saved!' ); setTimeout(() => { bbzg_button.html( 'Save' ); location.reload(); }, 2000); /** */}
             });
         }
 	});

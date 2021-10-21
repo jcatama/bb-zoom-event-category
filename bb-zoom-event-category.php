@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.3
+ * Version: 1.2.6
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
@@ -21,7 +21,7 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.3' );
+	define( 'BBZEC_VERSION', 'v1.2.6' );
 }
 
 if ( ! class_exists( 'BBZoomEventCategory' ) ) :
@@ -68,7 +68,8 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			wp_localize_script( 'jquery', 'bbzec', 
 				[
 					'ajaxurl'  => admin_url( 'admin-ajax.php' ),
-					'home_url' => get_home_url()
+					'home_url' => get_home_url(),
+					'nonce'    => wp_create_nonce('ajax-nonce')
 				]
 			);
 
@@ -304,17 +305,21 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 
 			$response = [ 'error' => true ];
             $group_id = bp_get_current_group_id();
-
-			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
-				exit(json_encode($response));
-			}
-	
-			if ( ! groups_is_user_admin(bp_loggedin_user_id(), $group_id) ) {
-				exit(json_encode($response));
-			}
+			$user_id  = bp_loggedin_user_id();
 
 			if ( ! $group_id ) {
-				exit(json_encode($response));
+				$response['error_message'] = 'Group is missing.';
+				exit( json_encode( $response ) );
+			}
+
+			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
+				$response['error_message'] = 'Invalid access.';
+				exit( json_encode( $response ) );
+			}
+
+			if ( ! wp_verify_nonce( $_GET['nonce'], 'ajax-nonce' ) ) {
+				$response['error_message'] = 'Cannot verify nonce.';
+				exit( json_encode( $response ) );
 			}
 
             $group_meta_event             = 'group_meta_event_id';
@@ -355,7 +360,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
                
             }
 		
-			exit(json_encode($response));
+			exit( json_encode( $response ) );
 
 		}
 
