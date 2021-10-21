@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
@@ -21,7 +21,7 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.0' );
+	define( 'BBZEC_VERSION', 'v1.2.1' );
 }
 
 if ( ! class_exists( 'BBZoomEventCategory' ) ) :
@@ -61,18 +61,21 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 		 * Include action scripts
 		 */
 		public function scripts_styles() {
+
 			wp_enqueue_style( 'bbzec-css', plugins_url( '/assets/css/index.css', __FILE__ ), array(), BBZEC_VERSION );
+			wp_enqueue_script( 'bbzec-init-js', plugins_url( '/assets/js/index.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
 
-			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
-				return;
-			}
-	
-			if ( ! bp_is_item_admin() && ! bp_current_user_can( 'bp_moderate' ) ) {
-				return;
+			wp_localize_script( 'jquery', 'bbzec', 
+				[
+					'ajaxurl'  => admin_url( 'admin-ajax.php' ),
+					'home_url' => get_home_url()
+				]
+			);
+
+			if ( 'zoom' == bp_get_group_current_admin_tab() ) {
+				wp_enqueue_script( 'bbzec-zoom-js', plugins_url( '/assets/js/zoom.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
 			}
 
-			wp_enqueue_script( 'bbzec-js', plugins_url( '/assets/js/index.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
-			wp_localize_script( 'jquery', 'bbzec', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 		}
 
 		/**
@@ -87,7 +90,10 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			$group_event_category = absint( groups_get_groupmeta( $group->id, 'group_meta_event_id' ) );
 			$term                 = get_term( $group_event_category );
 			if ( $group_event_category && ! is_wp_error( $term ) ) {
-				$meta['status'] = $meta['status'] . '<span class="type-separator">/</span> <span class="group-type zoom-group-calendar">' . $term->name . '</span>';
+				$meta['status'] = $meta['status'] . 
+					'<span class="type-separator">/</span> <span onlick="" class="group-type zoom-group-calendar '.$term->slug.'">
+						' . $term->name . '
+					</span>';
 			}
 
 			return $meta;
