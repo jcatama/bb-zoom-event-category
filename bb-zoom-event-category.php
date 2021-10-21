@@ -309,7 +309,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 				exit(json_encode($response));
 			}
 	
-			if ( ! bp_is_item_admin() && ! bp_current_user_can( 'bp_moderate' ) ) {
+			if ( ! groups_is_user_admin(bp_loggedin_user_id(), $group_id) ) {
 				exit(json_encode($response));
 			}
 
