@@ -16,6 +16,14 @@ if ( ! defined( 'BBZEC_PLUGIN_FILE' ) ) {
 	define( 'BBZEC_PLUGIN_FILE', __FILE__ );
 }
 
+if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
+	define( 'BBZEC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+}
+
+if ( ! defined('BBZEC_VERSION' ) ) {
+	define( 'BBZEC_VERSION', 'v1.0.0' );
+}
+
 if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 
 	/**
@@ -23,7 +31,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 	 *
 	 * @class BBZoomEventCategory
 	 */
-	class BBZoomEventCategory {
+	final class BBZoomEventCategory {
 
 		/**
 		 * The single instance of the class.
@@ -37,8 +45,52 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 		 */
 		public function __construct() {
 
+			add_action( 'wp_enqueue_scripts', [ $this, 'scripts_styles' ], 9999 );
+
+			add_filter( 'bp_nouveau_get_group_meta',  [ $this, 'render_custom_group_meta' ], 10, 3 );
 			add_action( 'bp_zoom_meeting_after_save', [ $this, 'mutate_sync_event_data' ], 11 );
 			add_action( 'bp_zoom_meeting_deleted_meetings', [ $this, 'delete_sync_event_data' ], 11 );
+
+			BBZoomEventCategorySetting::get_instance();
+
+			add_action( 'wp_ajax_bbzec_save_zoom_group_cat', [ $this, 'bbzec_save_zoom_group_cat' ] );
+			add_action( 'wp_ajax_nopriv_bbzec_save_zoom_group_cat', [ $this, 'bbzec_save_zoom_group_cat_no_priv' ] );
+		}
+
+		/**
+		 * Include action scripts
+		 */
+		public function scripts_styles() {
+			wp_enqueue_style( 'bbzec-css', plugins_url( '/assets/css/index.css', __FILE__ ), array(), BBZEC_VERSION );
+
+			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
+				return;
+			}
+	
+			if ( ! bp_is_item_admin() && ! bp_current_user_can( 'bp_moderate' ) ) {
+				return;
+			}
+
+			wp_enqueue_script( 'bbzec-js', plugins_url( '/assets/js/index.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
+			wp_localize_script( 'jquery', 'bbzec', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+		}
+
+		/**
+		 * Use to render event category meta.
+		 *
+		 * @param Array $meta array of status and description
+		 * @param BB_GROUP $group buddyboss group object
+		 * @paraa Boolean $is_group weather the object is a group or not
+		 */
+		public function render_custom_group_meta( $meta, $group, $is_group ) {
+
+			$group_event_category = absint( groups_get_groupmeta( $group->id, 'group_meta_event_id' ) );
+			$term                 = get_term( $group_event_category );
+			if ( $group_event_category && ! is_wp_error( $term ) ) {
+				$meta['status'] = $meta['status'] . '<span class="type-separator">/</span> <span class="group-type zoom-group-calendar">' . $term->name . '</span>';
+			}
+
+			return $meta;
 
 		}
 
@@ -159,22 +211,28 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			$end_minute       = $start_minute + $duration_min;
 			$group_name       = groups_get_group( $meeting->group_id )->name;
 			$term_exist       = term_exists( $group_name, 'tribe_events_cat' );
-			$term_id          = 0;
-			
+			$term_ids         = [];
+
 			if( null === $term_exist ) {
 
 				$term = wp_insert_term( $group_name, 'tribe_events_cat' );
 
 				if ( ! is_wp_error( $term ) ) {
-					$term_id = $term['term_id'];
+					$term_ids[] = $term['term_id'];
 				}
 
 			} else {
 
-				$term_id = $term_exist['term_id'];
+				$term_ids[] = $term_exist['term_id'];
 
 			}
-			
+
+            $group_event_category = absint( groups_get_groupmeta( $meeting->group_id, 'group_meta_event_id' ) );
+			$group_term           = get_term( $group_event_category );
+			if ( $group_event_category && ! is_wp_error( $group_term ) ) {
+				$term_ids[] = $group_term->term_id;
+            }
+
 			return [
 				'post_title'         => $meeting->title,
 				'post_content'       => $event_content,
@@ -190,7 +248,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 				'EventTimezone'      => $meeting->timezone,
 				'EventURL'           => $zoom_url,
 				'Organizer'          => $group_name,
-				'tax_input'          => [ 'tribe_events_cat' => $term_id ]
+				'tax_input'          => [ 'tribe_events_cat' => $term_ids ]
 			];
 
 		}
@@ -234,6 +292,73 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 		}
 
 		/**
+         * Create/Update custom event category for BB_GROUP
+         */
+		public function bbzec_save_zoom_group_cat() {
+
+			$response = [ 'error' => true ];
+            $group_id = bp_get_current_group_id();
+
+			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
+				exit(json_encode($response));
+			}
+	
+			if ( ! bp_is_item_admin() && ! bp_current_user_can( 'bp_moderate' ) ) {
+				exit(json_encode($response));
+			}
+
+			if ( ! $group_id ) {
+				exit(json_encode($response));
+			}
+
+            $group_meta_event             = 'group_meta_event_id';
+			$bp_group_zoom_event_category = isset($_GET['zoom_group_cat']) ? sanitize_text_field($_GET['zoom_group_cat']) : null;
+
+            if ( empty( trim( $bp_group_zoom_event_category ) ) && empty( groups_get_groupmeta( $group_id, $group_meta_event, true) ) ) {
+                exit(json_encode($response));
+            } else {
+
+                $group_event_category = absint( groups_get_groupmeta( $group_id, $group_meta_event ) );
+
+                if ( $group_event_category ) {
+
+                    $term = term_exists( $group_event_category, 'tribe_events_cat' );
+                    if ( $term ) {
+                        wp_update_term( 
+                            $term['term_id'],
+                            'tribe_events_cat',
+                            [
+                                'name' => $bp_group_zoom_event_category,
+                                'slug' => sanitize_title( $bp_group_zoom_event_category )
+                            ]
+                        );
+						$response['error']           = false;
+						$response['success_message'] = 'Zoom Group Category Saved';
+                    }
+
+                } else {
+
+                    $term = wp_insert_term( $bp_group_zoom_event_category, 'tribe_events_cat' );
+                    if ( ! is_wp_error( $term ) ) {
+                        groups_add_groupmeta( $group_id, $group_meta_event, $term['term_id'] );
+						$response['error']           = false;
+						$response['success_message'] = 'Zoom Group Category Saved';
+                    }
+
+                }
+               
+            }
+		
+			exit(json_encode($response));
+
+		}
+
+		public function bbzec_save_zoom_group_cat_no_priv() {
+			wp_die( 'Permissin denied.' );
+			die();
+		}
+
+		/**
 		 * Main BBZoomEventCategory Instance.
 		 *
 		 * Ensures only one instance of BBZoomEventCategory is loaded or can be loaded.
@@ -250,6 +375,18 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			return self::$instance;
 		}
 	}
+
+	/**
+	 * Include classes
+	 */
+	require BBZEC_PLUGIN_DIR . 'includes/class-index.php';
+
+	/**
+	 * Initiates the class.
+	 */
+	add_action( 'plugins_loaded', function () {
+		BBZoomEventCategory::get_instance();
+	} );
 
 endif;
 
@@ -277,11 +414,4 @@ register_activation_hook(__FILE__, function() {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 
 	endif;
-} );
-
-/**
- * Initiates the class.
- */
-add_action( 'plugins_loaded', function () {
-	BBZoomEventCategory::get_instance();
 } );
