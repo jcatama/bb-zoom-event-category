@@ -1,1 +1,2 @@
-.single-item.groups .zoom-group-calendar { background: #007CFF !important; cursor: pointer; }
+.single-item.groups .zoom-group-calendar { background: #007CFF !important; cursor: pointer; color: white; }
+.single-item.groups .bp-group-meta.bp-group-type { display: flex; }
