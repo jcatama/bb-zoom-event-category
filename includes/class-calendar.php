@@ -105,6 +105,14 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 				$term_ids[] = $group_term->term_id;
             }
 
+			$eventendmeridian = $post_args['bp-group-calendar-medridian'];
+			if (
+				$eventendmeridian == 'am' && $end_hour > 12
+			) {
+				$end_hour         = $end_hour - 12;
+				$eventendmeridian = 'pm';
+			}
+
 			$args = [
 				'post_title'         => $event_title,
 				'post_content'       => sanitize_text_field( $post_args['bp-group-calendar-description'] ),
@@ -117,6 +125,7 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 				'EventEndHour'       => $end_hour,
 				'EventEndMinute'     => $end_minute,
 				'EventTimezone'      => $post_args['bp-group-calendar-timezone'],
+				'EventEndMeridian'   => $eventendmeridian,
 				'Organizer'          => $group_name,
 				'tax_input'          => [ 'tribe_events_cat' => $term_ids ]
 			];

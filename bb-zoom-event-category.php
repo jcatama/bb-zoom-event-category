@@ -257,6 +257,14 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 				$term_ids[] = $group_term->term_id;
             }
 
+			$eventendmeridian = $post_args['bp-zoom-meeting-start-time-meridian'];
+			if (
+				$eventendmeridian == 'am' && $end_hour > 12
+			) {
+				$end_hour         = $end_hour - 12;
+				$eventendmeridian = 'pm';
+			}
+
 			return [
 				'post_title'         => $meeting->title,
 				'post_content'       => $event_content,
@@ -269,6 +277,7 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 				'EventEndHour'       => $end_hour,
 				'EventEndMinute'     => $end_minute,
 				'EventTimezone'      => $meeting->timezone,
+				'EventEndMeridian'   => $eventendmeridian,
 				'EventURL'           => $zoom_url,
 				'Organizer'          => $group_name,
 				'tax_input'          => [ 'tribe_events_cat' => $term_ids ]
