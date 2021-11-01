@@ -80,8 +80,10 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 				exit( json_encode( $response ) );
 			}
 
-            $group_meta_event             = 'group_meta_event_id';
-			$bp_group_zoom_event_category = isset($_POST['zoom_group_cat']) ? sanitize_text_field($_POST['zoom_group_cat']) : null;
+            $group_meta_event                 = 'group_meta_event_id';
+			$bp_group_zoom_event_category     = isset($_POST['zoom_group_cat']) ? sanitize_text_field($_POST['zoom_group_cat']) : null;
+			$bp_group_zoom_event_category     = trim( $bp_group_zoom_event_category );
+			$bp_group_zoom_event_category_slug = sanitize_title( $bp_group_zoom_event_category );
 
             if ( empty( trim( $bp_group_zoom_event_category ) ) && empty( groups_get_groupmeta( $group_id, $group_meta_event, true) ) ) {
                 exit(json_encode($response));
@@ -89,16 +91,35 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 
                 $group_event_category = absint( groups_get_groupmeta( $group_id, $group_meta_event ) );
 
+				$term_other = term_exists( $bp_group_zoom_event_category, 'tribe_events_cat' );
+				if (
+					$term_other['term_id'] != 0 &&
+					$term_other['term_id'] != null &&
+					$term_other['term_id'] != $group_event_category
+				) {
+					$bp_group_zoom_event_category_slug = $bp_group_zoom_event_category_slug . '-1';
+				}
+
                 if ( $group_event_category ) {
 
-                    $term = term_exists( $group_event_category, 'tribe_events_cat' );
+					$term = term_exists( $group_event_category, 'tribe_events_cat' );
                     if ( $term ) {
+
+						$term_now = get_term( $group_event_category, 'tribe_events_cat' );
+						if ( $term_now ) {
+							if ( strtolower($term_now->name) == strtolower($bp_group_zoom_event_category) ) {
+								$response['error']           = true;
+								$response['success_message'] = 'No changes needed.';
+								exit(json_encode($response));
+							}
+						}
+
                         wp_update_term(
                             $term['term_id'],
                             'tribe_events_cat',
                             [
                                 'name' => $bp_group_zoom_event_category,
-                                'slug' => sanitize_title( $bp_group_zoom_event_category )
+                                'slug' => $bp_group_zoom_event_category_slug
                             ]
                         );
 						$response['error']           = false;
