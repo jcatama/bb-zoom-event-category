@@ -1,0 +1,111 @@
+# Copyright (C) 2021 John Albert Catama
+# This file is distributed under the same license as the BB Zoom Event Category plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: BB Zoom Event Category 1.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/bb-zoom-event-category\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2021-11-01T13:54:58+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: bb-zoom-event-category\n"
+
+#. Plugin Name of the plugin
+msgid "BB Zoom Event Category"
+msgstr ""
+
+#. Description of the plugin
+msgid "Sync copy buddyboss zoom meeting to events category."
+msgstr ""
+
+#. Author of the plugin
+msgid "John Albert Catama"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://github.com/jcatama"
+msgstr ""
+
+#: bb-zoom-event-category.php:97
+msgid "Calendar"
+msgstr ""
+
+#. translators: %s: duration in minutes, %s: description, %s: zoom link, %s: zoom id, %s: zoom password
+#: bb-zoom-event-category.php:193
+msgid ""
+"\n"
+"\t\t\t\t\tDuration: %1$s minutes<br>\n"
+"\t\t\t\t\t%2$s<br>\n"
+"\t\t\t\t\t<p></p>\n"
+"\t\t\t\t\tJoin Zoom Meeting: %3$s<br>\n"
+"\t\t\t\t\tMeeting ID: %4$s<br>\n"
+"\t\t\t\t\tPasscode: %5$s<br>\n"
+"\t\t\t\t\t"
+msgstr ""
+
+#. translators: %s: admin link
+#: bb-zoom-event-category.php:365
+msgid "Sorry, but this plugin requires the BuddyBoss Platform Pro & The Events Calendar to be installed and active.<br><a href=\"%1$s\">&laquo; Return to Plugins</a>"
+msgstr ""
+
+#. translators: %s: event name
+#: includes/class-calendar.php:118
+msgid "Group Calendar: %1$s was successfully created."
+msgstr ""
+
+#. translators: %s: event name
+#: includes/class-calendar.php:127
+msgid "Group Calendar: Unable to create %1$s."
+msgstr ""
+
+#: includes/templates/template-calendar.php:10
+msgid "Calendar Name"
+msgstr ""
+
+#: includes/templates/template-calendar.php:15
+msgid "Save"
+msgstr ""
+
+#: includes/templates/template-calendar.php:18
+msgid "Delete Event"
+msgstr ""
+
+#: includes/templates/template-calendar.php:26
+msgid "Delete"
+msgstr ""
+
+#: includes/templates/template-calendar.php:29
+msgid "Create Event"
+msgstr ""
+
+#: includes/templates/template-calendar.php:34
+msgid "Event Title *"
+msgstr ""
+
+#: includes/templates/template-calendar.php:41
+msgid "Description (optional)"
+msgstr ""
+
+#: includes/templates/template-calendar.php:50
+msgid "When *"
+msgstr ""
+
+#: includes/templates/template-calendar.php:72
+msgid "Duration *"
+msgstr ""
+
+#: includes/templates/template-calendar.php:82
+msgid "hr"
+msgstr ""
+
+#: includes/templates/template-calendar.php:95
+msgid "min"
+msgstr ""
+
+#: includes/templates/template-calendar.php:101
+msgid "Timezone *"
+msgstr ""

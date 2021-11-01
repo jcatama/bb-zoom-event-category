@@ -2,12 +2,13 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.9
+ * Version: 1.2.0
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
+ * Domain Path: /languages/
  *
- * @package BBZoomEventCategory
+ * @package BB_Zoom_Event_Category
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,40 +22,38 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.9' );
+	define( 'BBZEC_VERSION', 'v1.2.0' );
 }
 
-if ( ! class_exists( 'BBZoomEventCategory' ) ) :
+if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 
 	/**
 	 * BB Zoom Event Category Class.
 	 *
-	 * @class BBZoomEventCategory
+	 * @class BB_Zoom_Event_Category
 	 */
-	final class BBZoomEventCategory {
+	final class BB_Zoom_Event_Category {
 
 		/**
 		 * The single instance of the class.
 		 *
-		 * @var BBZoomEventCategory
+		 * @var BB_Zoom_Event_Category
 		 */
 		private static $instance;
 
 		/**
-		 * BBZoomEventCategory Constructor.
+		 * BB_Zoom_Event_Category Constructor.
 		 */
 		public function __construct() {
 
-			add_action( 'wp_enqueue_scripts', [ $this, 'scripts_styles' ], 9999 );
+			// Load local translations.
+			load_plugin_textdomain( 'bb-zoom-event-category', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
+			add_action( 'wp_enqueue_scripts', [ $this, 'scripts_styles' ], 9999 );
 			add_filter( 'bp_nouveau_get_group_meta',  [ $this, 'render_custom_group_meta' ], 10, 3 );
 			add_action( 'bp_zoom_meeting_after_save', [ $this, 'mutate_sync_event_data' ], 11 );
 			add_action( 'bp_zoom_meeting_deleted_meetings', [ $this, 'delete_sync_event_data' ], 11 );
 
-			BBZoomEventCategorySetting::get_instance();
-
-			add_action( 'wp_ajax_bbzec_save_zoom_group_cat', [ $this, 'bbzec_save_zoom_group_cat' ] );
-			add_action( 'wp_ajax_nopriv_bbzec_save_zoom_group_cat', [ $this, 'bbzec_save_zoom_group_cat_no_priv' ] );
 		}
 
 		/**
@@ -65,16 +64,18 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			wp_enqueue_style( 'bbzec-css', plugins_url( '/assets/css/index.css', __FILE__ ), array(), BBZEC_VERSION );
 			wp_enqueue_script( 'bbzec-init-js', plugins_url( '/assets/js/index.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
 
-			wp_localize_script( 'jquery', 'bbzec', 
+			wp_localize_script( 'jquery', 'bbzec',
 				[
 					'ajaxurl'  => admin_url( 'admin-ajax.php' ),
 					'home_url' => get_home_url(),
-					'nonce'    => wp_create_nonce('ajax-nonce')
+					'nonce'    => wp_create_nonce( 'ajax-nonce' )
 				]
 			);
 
-			if ( 'zoom' == bp_get_group_current_admin_tab() ) {
-				wp_enqueue_script( 'bbzec-zoom-js', plugins_url( '/assets/js/zoom.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
+			if ( 'calendar-group-event' == bp_get_group_current_admin_tab() ) {
+				wp_enqueue_style( 'jquery-datetimepicker' );
+				wp_enqueue_script( 'jquery-datetimepicker' );
+				wp_enqueue_script( 'bbzec-zoom-js', plugins_url( '/assets/js/calendar.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION, true );
 			}
 
 		}
@@ -91,7 +92,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 			$group_event_category = absint( groups_get_groupmeta( $group->id, 'group_meta_event_id' ) );
 			$term                 = get_term( $group_event_category );
 			if ( $group_event_category && ! is_wp_error( $term ) ) {
-				$meta['status'] = $meta['status'] . 
+				$meta['status'] = $meta['status'] .
 					' <span class="type-separator">/</span><span class="group-type zoom-group-calendar '.$term->slug.'">
 						' . __( 'Calendar', 'bb-zoom-event-category' ) . '
 					</span>';
@@ -102,7 +103,7 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 		}
 
 		/**
-		 * Add/Set Event Category on Zoom meeting mutate.
+		 * Add/Set Event Category on Calendar meeting mutate.
 		 *
 		 * @param BP_Zoom_Meeting $meeting Current instance of meeting item being saved. Passed by reference.
 		 */
@@ -135,12 +136,12 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 				$this->create_event( $meeting, $post_args );
 
 			}
-			
+
 		}
 
 		/**
 		 * Create new event
-		 * 
+		 *
 		 * @param BP_Zoom_Meeting $meeting Current instance of meeting item being saved. Passed by reference.
 		 * @param $_POST $post_args Current post payload
 		 */
@@ -159,14 +160,14 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 
 		/**
 		 * Update event
-		 * 
+		 *
 		 * @param BP_Zoom_Meeting $meeting Current instance of meeting item being saved. Passed by reference.
 		 * @param $_POST $post_args Current post payload
 		 */
 		private function update_event( $meeting, $post_args ) {
 
 			$event_id = bp_zoom_meeting_get_meta( $meeting->id, 'event_id' );
-			
+
 			if ( $event_id ) {
 
 				tribe_update_event( $event_id, $this->populate_zoom_args( $meeting, $post_args ) );
@@ -181,13 +182,14 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 
 		/**
 		 * Populate post_args to array
-		 * 
+		 *
 		 * @param $_POST $post_args Current post payload
 		 */
 		private function populate_zoom_args( $meeting, $post_args ) {
 
 			$zoom_url      = bp_zoom_meeting_get_meta( $meeting->id, 'zoom_join_url', true );
 			$event_content = sprintf(
+				/* translators: %s: duration in minutes, %s: description, %s: zoom link, %s: zoom id, %s: zoom password */
 				__(
 					'
 					Duration: %1$s minutes<br>
@@ -308,127 +310,62 @@ if ( ! class_exists( 'BBZoomEventCategory' ) ) :
 		}
 
 		/**
-         * Create/Update custom event category for BB_GROUP
-         */
-		public function bbzec_save_zoom_group_cat() {
-
-			$response = [ 'error' => true ];
-            $group_id = bp_get_current_group_id();
-			$user_id  = bp_loggedin_user_id();
-
-			if ( ! $group_id ) {
-				$response['error_message'] = 'Group is missing.';
-				exit( json_encode( $response ) );
-			}
-
-			if ( 'zoom' !== bp_get_group_current_admin_tab() ) {
-				$response['error_message'] = 'Invalid access.';
-				exit( json_encode( $response ) );
-			}
-
-			if ( ! wp_verify_nonce( $_GET['nonce'], 'ajax-nonce' ) ) {
-				$response['error_message'] = 'Cannot verify nonce.';
-				exit( json_encode( $response ) );
-			}
-
-            $group_meta_event             = 'group_meta_event_id';
-			$bp_group_zoom_event_category = isset($_GET['zoom_group_cat']) ? sanitize_text_field($_GET['zoom_group_cat']) : null;
-
-            if ( empty( trim( $bp_group_zoom_event_category ) ) && empty( groups_get_groupmeta( $group_id, $group_meta_event, true) ) ) {
-                exit(json_encode($response));
-            } else {
-
-                $group_event_category = absint( groups_get_groupmeta( $group_id, $group_meta_event ) );
-
-                if ( $group_event_category ) {
-
-                    $term = term_exists( $group_event_category, 'tribe_events_cat' );
-                    if ( $term ) {
-                        wp_update_term( 
-                            $term['term_id'],
-                            'tribe_events_cat',
-                            [
-                                'name' => $bp_group_zoom_event_category,
-                                'slug' => sanitize_title( $bp_group_zoom_event_category )
-                            ]
-                        );
-						$response['error']           = false;
-						$response['success_message'] = 'Zoom Group Category Saved';
-                    }
-
-                } else {
-
-                    $term = wp_insert_term( $bp_group_zoom_event_category, 'tribe_events_cat' );
-                    if ( ! is_wp_error( $term ) ) {
-                        groups_add_groupmeta( $group_id, $group_meta_event, $term['term_id'] );
-						$response['error']           = false;
-						$response['success_message'] = 'Zoom Group Category Saved';
-                    }
-
-                }
-               
-            }
-		
-			exit( json_encode( $response ) );
-
-		}
-
-		public function bbzec_save_zoom_group_cat_no_priv() {
-			wp_die( 'Permissin denied.' );
-			die();
-		}
-
-		/**
-		 * Main BBZoomEventCategory Instance.
+		 * Main BB_Zoom_Event_Category Instance.
 		 *
-		 * Ensures only one instance of BBZoomEventCategory is loaded or can be loaded.
+		 * Ensures only one instance of BB_Zoom_Event_Category is loaded or can be loaded.
 		 *
 		 * @since 1.0
 		 * @static
-		 * @return BBZoomEventCategory - Main instance.
+		 * @return BB_Zoom_Event_Category - Main instance.
 		 */
 		public static function get_instance() {
 			if (null === self::$instance) {
 				self::$instance = new self();
 			}
-	
+
 			return self::$instance;
 		}
 	}
 
 	/**
-	 * Include classes
+	 * Include caledar group admin sub menu.
 	 */
-	require BBZEC_PLUGIN_DIR . 'includes/class-index.php';
+	add_action( 'bp_init', function () {
+		include_once BBZEC_PLUGIN_DIR . 'includes/class-calendar.php';
+	} );
+
+	include_once BBZEC_PLUGIN_DIR . 'includes/class-calendar-functions.php';
 
 	/**
-	 * Initiates the class.
+	 * Initiates plugin class.
 	 */
 	add_action( 'plugins_loaded', function () {
-		BBZoomEventCategory::get_instance();
+		BB_Zoom_Event_Category::get_instance();
+		BB_Calendar_Group_Functions::get_instance();
 	} );
 
 endif;
 
 /**
  * Check for dependencies.
- * 
+ *
  * BuddyBoss Platform Pro
  * The Events Calendar
- * 
+ *
  */
 register_activation_hook(__FILE__, function() {
-	if( 
+	if(
 		( ! is_plugin_active( 'buddyboss-platform-pro/buddyboss-platform-pro.php' ) || ! is_plugin_active( 'the-events-calendar/the-events-calendar.php' ) ) &&
 		is_admin()
 	):
 
 		wp_die(
 			sprintf(
+				/* translators: %s: admin link */
 				__(
 					'Sorry, but this plugin requires the BuddyBoss Platform Pro & The Events Calendar to be installed and active.<br><a href="%1$s">&laquo; Return to Plugins</a>', 'bb-zoom-event-category'
 				),
-				admin_url( 'plugins.php' ) 
+				admin_url( 'plugins.php' )
 			)
 		);
 		deactivate_plugins( plugin_basename( __FILE__ ) );
