@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.4
+ * Version: 1.2.5
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
@@ -22,7 +22,7 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.4' );
+	define( 'BBZEC_VERSION', 'v1.2.5' );
 }
 
 if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
