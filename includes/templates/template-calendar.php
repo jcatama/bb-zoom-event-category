@@ -7,57 +7,71 @@
  */
 
 ?>
-<h4 class="bb-section-title"><?php esc_html_e('Calendar Name', 'bb-zoom-event-category'); ?></h4>
-<div class="bb-field-wrap">
-	<div class="bp-input-wrap">
-		<input type="text" name="bp-group-calendar-event-category" id="bp-group-calendar-event-category" class="zoom-group-instructions-main-input" value="<?php echo esc_attr($this->zoom_event_category); ?>" />
+
+<div class="bp-meeting-fields-wrap bp-calendar-group-fields-wrap">
+
+	<h4 class="bb-section-title"><?php esc_html_e('Calendar Name', 'bb-zoom-event-category'); ?></h4>
+	<div class="bb-field-wrapper">
+		<div class="">
+			<div class="bb-field-wrap">
+				<div class="bp-input-wrap">
+					<input type="text" name="bp-group-calendar-event-category" id="bp-group-calendar-event-category" class="zoom-group-instructions-main-input" value="<?php echo esc_attr($this->zoom_event_category); ?>" />
+				</div>
+				<button type="button" class="btn" id="save_calendar_group"><?php esc_html_e('Save', 'bb-zoom-event-category'); ?></button>
+			</div>
+		</div>
 	</div>
-	<button type="button" class="btn" id="save_calendar_group"><?php esc_html_e('Save', 'bb-zoom-event-category'); ?></button>
-</div>
-<hr class="bb-sep-line" />
-<h4 class="bb-section-title"><?php esc_html_e('Delete Event', 'bb-zoom-event-category'); ?></h4>
-<div class="bb-field-wrap">
-	<div class="bp-input-wrap">
-		<select name="bp-group-calendar-event-category-delete" id="bp-group-calendar-event-category-delete">
-			<?php
-				$args = [
-					'post_type'              => 'tribe_events',
-					'post_status'            => 'publish',
-					'orderby'                => 'date',
-            		'order'                  => 'DESC',
-					'meta_query'             => [
-						[
-							'key'     => 'bp_zoom_meeting_id',
-							'compare' => 'NOT EXISTS'
-						]
-					],
-					'posts_per_page'         => -1,
-					'update_post_term_cache' => false
-				];
 
-				$calendar_events = new WP_Query( $args );
+	<hr class="bb-sep-line" />
 
-				if ( ! is_wp_error( $calendar_events ) ) :
+	<h4 class="bb-section-title"><?php esc_html_e('Delete Event', 'bb-zoom-event-category'); ?></h4>
+	<div class="bb-field-wrapper">
+		<div class="">
+			<div class="bb-field-wrap">
+				<div class="bp-input-wrap">
+					<select name="bp-group-calendar-event-category-delete" id="bp-group-calendar-event-category-delete">
+						<?php
+							$args = [
+								'post_type'              => 'tribe_events',
+								'post_status'            => 'publish',
+								'orderby'                => 'date',
+								'order'                  => 'DESC',
+								'meta_query'             => [
+									[
+										'key'     => 'bp_zoom_meeting_id',
+										'compare' => 'NOT EXISTS'
+									]
+								],
+								'posts_per_page'         => -1,
+								'update_post_term_cache' => false
+							];
 
-					while ( $calendar_events->have_posts() ) :
+							$calendar_events = new WP_Query( $args );
 
-						$calendar_events->the_post();
+							if ( ! is_wp_error( $calendar_events ) ) :
 
-						echo '<option value="' . get_the_ID() . '">' . get_the_title() . '</option>';
+								while ( $calendar_events->have_posts() ) :
 
-					endwhile;
+									$calendar_events->the_post();
 
-				endif;
-				wp_reset_postdata();
-			?>
-		</select>
+									echo '<option value="' . get_the_ID() . '">' . get_the_title() . '</option>';
+
+								endwhile;
+
+							endif;
+							wp_reset_postdata();
+						?>
+					</select>
+				</div>
+				<br>
+				<button type="button" class="btn" id="save_calendar_group_delete"><?php esc_html_e('Delete', 'bb-zoom-event-category'); ?></button>
+			</div>
+		</div>
 	</div>
-	<br>
-	<button type="button" class="btn" id="save_calendar_group_delete"><?php esc_html_e('Delete', 'bb-zoom-event-category'); ?></button>
-</div>
-<hr class="bb-sep-line" />
-<h4 class="bb-section-title"><?php esc_html_e('Create Event', 'bb-zoom-event-category'); ?></h4>
-<div class="bp-meeting-fields-wrap">
+
+	<hr class="bb-sep-line" />
+
+	<h4 class="bb-section-title"><?php esc_html_e('Create Event', 'bb-zoom-event-category'); ?></h4>
 	<div class="bb-field-wrapper">
 		<div class="bb-field-wrapper-inner">
 			<div class="bb-field-wrap">

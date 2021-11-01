@@ -44,7 +44,7 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 				'screens'             => [
 					'edit'            => [
 						'name'        => 'Calendar',
-						'submit_text' => 'Save',
+						'submit_text' => 'Create Event',
 					]
 				]
 			];
