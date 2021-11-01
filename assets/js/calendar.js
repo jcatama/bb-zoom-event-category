@@ -80,4 +80,7 @@ jQuery(document).ready(function($) {
         }
 	});
 
+    $('#bp-group-edit-calendar-group-event-submit-wrapper').detach().insertAfter('#main-bbze-button');
+    $('#bp-group-edit-calendar-group-event-submit-wrapper').show();
+
 });

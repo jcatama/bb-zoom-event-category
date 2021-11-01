@@ -1,5 +1,6 @@
 .single-item.groups .zoom-group-calendar { background: #007CFF !important; cursor: pointer; color: white; }
 .single-item.groups .bp-group-meta.bp-group-type { display: flex; }
+#bp-group-edit-calendar-group-event-submit-wrapper { display: none; }
 #bp-group-calendar-event-category, #bp-group-calendar-event-category-delete { max-width: 380px; }
 .bp-calendar-group-fields-wrap label { margin-top: 10px !important; }
 .bp-calendar-group-fields-wrap .bb-field-wrapper-inner { margin: 0; }
