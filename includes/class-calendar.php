@@ -91,6 +91,12 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 			$duration_min         = absint( $post_args['bp-group-calendar-duration-min'] );
 			$end_hour             = $start_hour + $duration_hr;
 			$end_minute           = $start_minute + $duration_min;
+
+			if( 60 === $end_minute ) {
+				$end_hour  = $end_hour  + 1;
+				$end_minute = 0;
+			}
+
 			$group_name           = groups_get_group( $group_id )->name;
 			$term_ids             = [];
             $group_event_category = absint( groups_get_groupmeta( $group_id, 'group_meta_event_id' ) );
@@ -110,7 +116,6 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 				'EventStartMeridian' => $post_args['bp-group-calendar-medridian'],
 				'EventEndHour'       => $end_hour,
 				'EventEndMinute'     => $end_minute,
-				'EventEndMeridian'   => $post_args['bp-group-calendar-medridian'],
 				'EventTimezone'      => $post_args['bp-group-calendar-timezone'],
 				'Organizer'          => $group_name,
 				'tax_input'          => [ 'tribe_events_cat' => $term_ids ]

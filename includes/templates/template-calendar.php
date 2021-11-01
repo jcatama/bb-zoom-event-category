@@ -92,8 +92,8 @@
 				</div>
 				<div class="bb-field-wrap start-time-picker">
 					<select id="bp-group-calendar-medridian" name="bp-group-calendar-medridian">
-						<option value="am">AM</option>
-						<option value="pm">PM</option>
+						<option value="am" <?php selected( 'AM', wp_date( 'A', $current_minutes ) ); ?>>AM</option>
+						<option value="pm" <?php selected( 'PM', wp_date( 'A', $current_minutes ) ); ?>>PM</option>
 					</select>
 				</div>
 			</div>
