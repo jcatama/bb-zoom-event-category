@@ -1,11 +1,11 @@
-.single-item.groups .zoom-group-calendar { background: #007CFF !important; cursor: pointer; color: white; }
+#group-calendar-button { font-family: "SF UI Text", sans-serif !important; margin-top: -6px; background: #007CFF !important; cursor: pointer; color: white;border-radius: 100px; font-size: 12px; font-weight: 600; padding: 4px 10px 3px 10px;}
+#group-calendar-button a { color: white !important; }
 .single-item.groups .bp-group-meta.bp-group-type { display: flex; }
 #bp-group-edit-calendar-group-event-submit-wrapper { display: none; }
 #bp-group-calendar-event-category, #bp-group-calendar-event-category-delete,
-#bp-group-calendar-title, #bp-group-calendar-description, #bp-group-calendar-timezone
- { width:100%; max-width: 380px; }
- #bp-group-calendar-start-date { width: 130px; }
- #bp-group-calendar-start-time { width: 115px; }
- .bp-calendar-group-fields-wrap { padding: 1rem; border: 1px solid #e7e9ec; border-radius: 4px; }
+#bp-group-calendar-title, #bp-group-calendar-description, #bp-group-calendar-timezone { width:100%; max-width: 380px; }
+#bp-group-calendar-start-date { width: 130px; }
+#bp-group-calendar-start-time { width: 115px; }
+.bp-calendar-group-fields-wrap { padding: 1rem; border: 1px solid #e7e9ec; border-radius: 4px; }
 .bp-calendar-group-fields-wrap .bb-field-wrapper-inner { margin: 0; }
 .bp-calendar-group-fields-wrap .bb-field-wrapper-inner > .bb-field-wrap > label { flex: 0 0 180px !important; }

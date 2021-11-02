@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.7
+ * Version: 1.2.8
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
@@ -22,7 +22,7 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.7' );
+	define( 'BBZEC_VERSION', 'v1.2.8' );
 }
 
 if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
@@ -50,9 +50,9 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 			load_plugin_textdomain( 'bb-zoom-event-category', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
 			add_action( 'wp_enqueue_scripts', [ $this, 'scripts_styles' ], 9999 );
-			add_filter( 'bp_nouveau_get_group_meta',  [ $this, 'render_custom_group_meta' ], 10, 3 );
 			add_action( 'bp_zoom_meeting_after_save', [ $this, 'mutate_sync_event_data' ], 11 );
 			add_action( 'bp_zoom_meeting_deleted_meetings', [ $this, 'delete_sync_event_data' ], 11 );
+			add_action( 'bp_before_group_header_meta', [ $this, 'render_custom_group_meta' ] );
 
 		}
 
@@ -62,7 +62,6 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 		public function scripts_styles() {
 
 			wp_enqueue_style( 'bbzec-css', plugins_url( '/assets/css/index.css', __FILE__ ), array(), BBZEC_VERSION );
-			wp_enqueue_script( 'bbzec-init-js', plugins_url( '/assets/js/index.js', __FILE__ ), array( 'jquery' ), BBZEC_VERSION );
 
 			wp_localize_script( 'jquery', 'bbzec',
 				[
@@ -83,22 +82,26 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 		/**
 		 * Use to render event category meta.
 		 *
-		 * @param Array $meta array of status and description
-		 * @param BB_GROUP $group buddyboss group object
-		 * @paraa Boolean $is_group weather the object is a group or not
+		 * @return void
 		 */
-		public function render_custom_group_meta( $meta, $group, $is_group ) {
+		public function render_custom_group_meta() {
 
-			$group_event_category = absint( groups_get_groupmeta( $group->id, 'group_meta_event_id' ) );
+			$group_id             = bp_get_current_group_id();
+			$group_event_category = absint( groups_get_groupmeta( $group_id, 'group_meta_event_id' ) );
 			$term                 = get_term( $group_event_category );
-			if ( $group_event_category && ! is_wp_error( $term ) ) {
-				$meta['status'] = $meta['status'] .
-					' <span class="type-separator">/</span><span class="group-type zoom-group-calendar '.$term->slug.'">
-						' . __( 'Calendar', 'bb-zoom-event-category' ) . '
-					</span>';
-			}
 
-			return $meta;
+			if ( $group_event_category && ! is_wp_error( $term ) ) {
+				?>
+					<button id="group-calendar-button" class="btn">
+						<a target="_blank" href="<?php echo get_home_url() . '/events/category/' . $term->slug; ?>">
+							<?php _e( 'Calendar', 'bb-zoom-event-category' ); ?>
+						</a>
+					</button>
+					<script>
+						jQuery('#group-calendar-button').detach().appendTo('#item-header-content .bp-group-title-wrap');
+					</script>
+				<?php
+			}
 
 		}
 
