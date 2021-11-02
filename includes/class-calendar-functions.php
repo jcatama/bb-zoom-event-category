@@ -36,6 +36,9 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 			add_action( 'wp_ajax_bbzec_delete_calendar_group_cat', [ $this, 'delete_group_event' ] );
 			add_action( 'wp_ajax_nopriv_bbzec_delete_calendar_group_cat', [ $this, 'no_priv' ] );
 
+			add_action( 'wp_ajax_bbzec_create_event', [ $this, 'create_event' ] );
+			add_action( 'wp_ajax_nopriv_bbzec_create_event', [ $this, 'no_priv' ] );
+
 		}
 
 		/**
@@ -70,12 +73,12 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 				exit( json_encode( $response ) );
 			}
 
-			if ( 'calendar-group-event' !== bp_get_group_current_admin_tab() ) {
+			if ( ! ( bp_is_groups_component() && bp_is_current_action( 'calendar-group-event' ) ) ) {
 				$response['error_message'] = 'Invalid access.';
 				exit( json_encode( $response ) );
 			}
 
-			if ( ! wp_verify_nonce( $_POST['nonce'], 'ajax-nonce' ) ) {
+			if ( ! wp_verify_nonce( $_POST['nonce'], 'ajax-nonce') ) {
 				$response['error_message'] = 'Cannot verify nonce.';
 				exit( json_encode( $response ) );
 			}
@@ -158,7 +161,7 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 				exit( json_encode( $response ) );
 			}
 
-			if ( 'calendar-group-event' !== bp_get_group_current_admin_tab() ) {
+			if ( ! ( bp_is_groups_component() && bp_is_current_action( 'calendar-group-event' ) ) ) {
 				$response['error_message'] = 'Invalid access.';
 				exit( json_encode( $response ) );
 			}
@@ -185,6 +188,101 @@ if ( ! class_exists( 'BB_Calendar_Group_Functions' ) ) :
 			}
 
 			exit( json_encode( $response ) );
+		}
+
+		/**
+		 * Handles the main save action.
+		 *
+		 * @return void
+		 */
+		public function create_event() {
+
+			$response = [ 'error' => true ];
+			$group_id = bp_get_current_group_id();
+
+			if ( ! $group_id ) {
+				$response['error_message'] = 'Group is missing.';
+				exit( json_encode( $response ) );
+			}
+
+			if ( ! ( bp_is_groups_component() && bp_is_current_action( 'calendar-group-event' ) ) ) {
+				$response['error_message'] = 'Invalid access.';
+				exit( json_encode( $response ) );
+			}
+
+			if ( ! isset( $_POST['bp-group-calendar-title'] ) ) {
+				$response['error_message'] = 'Missing required fields.';
+				exit( json_encode( $response ) );
+			}
+
+			if (
+				! isset( $_POST['bbzec_create_event_field'] ) ||
+				! wp_verify_nonce( $_POST['bbzec_create_event_field'], 'bbzec_create_event' )
+			) {
+				$response['error_message'] = 'Invalid nonce.';
+				exit( json_encode( $response ) );
+			}
+
+			$post_args            = $_POST;
+			$event_title          = sanitize_text_field( $post_args['bp-group-calendar-title'] );
+			$start_date           = $post_args['bp-group-calendar-start-date'];
+			$start_hr_mm_ss       = explode( ':', $post_args['bp-group-calendar-start-time'] );
+			$start_hour           = absint( $start_hr_mm_ss[0] );
+			$start_minute         = absint( $start_hr_mm_ss[1] );
+			$duration_hr          = absint( $post_args['bp-group-calendar-duration-hr'] );
+			$duration_min         = absint( $post_args['bp-group-calendar-duration-min'] );
+			$end_hour             = $start_hour + $duration_hr;
+			$end_minute           = $start_minute + $duration_min;
+
+			if( 60 === $end_minute ) {
+				$end_hour  = $end_hour  + 1;
+				$end_minute = 0;
+			}
+
+			$group_name           = groups_get_group( $group_id )->name;
+			$term_ids             = [];
+            $group_event_category = absint( groups_get_groupmeta( $group_id, 'group_meta_event_id' ) );
+			$group_term           = get_term( $group_event_category );
+			if ( $group_event_category && ! is_wp_error( $group_term ) ) {
+				$term_ids[] = $group_term->term_id;
+            }
+
+			$eventendmeridian = $post_args['bp-group-calendar-medridian'];
+			if (
+				$eventendmeridian == 'am' && $end_hour > 12
+			) {
+				$end_hour         = $end_hour - 12;
+				$eventendmeridian = 'pm';
+			}
+
+			$args = [
+				'post_title'         => $event_title,
+				'post_content'       => sanitize_text_field( $post_args['bp-group-calendar-description'] ),
+				'post_status'        => 'publish',
+				'EventStartDate'     => $start_date,
+				'EventEndDate'       => $start_date,
+				'EventStartHour'     => $start_hour,
+				'EventStartMinute'   => $start_minute,
+				'EventStartMeridian' => $post_args['bp-group-calendar-medridian'],
+				'EventEndHour'       => $end_hour,
+				'EventEndMinute'     => $end_minute,
+				'EventTimezone'      => $post_args['bp-group-calendar-timezone'],
+				'EventEndMeridian'   => $eventendmeridian,
+				'Organizer'          => $group_name,
+				'tax_input'          => [ 'tribe_events_cat' => $term_ids ]
+			];
+
+			$event_id = tribe_create_event( $args );
+
+			if ( $event_id ) {
+				$response['error']           = false;
+				$response['success_message'] = 'Event has been created.';
+			} else {
+				$response['error_message'] = 'Event was not created.';
+			}
+
+			exit( json_encode( $response ) );
+
 		}
 
 		/**

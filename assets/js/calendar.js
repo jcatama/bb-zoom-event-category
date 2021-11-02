@@ -80,7 +80,14 @@ jQuery(document).ready(function($) {
         }
 	});
 
-    $('#bp-group-edit-calendar-group-event-submit-wrapper').detach().insertAfter('#main-bbze-button');
-    $('#bp-group-edit-calendar-group-event-submit-wrapper').show();
+    $('form#create_calendar_event').on('submit', function(e) {
+        e.preventDefault();
+        $.ajax({
+            type : 'POST',
+            url  : bbzec.ajaxurl,
+            data: $('form').serialize(),
+            success: function(data){ location.reload(); }
+        });
+    });
 
 });
