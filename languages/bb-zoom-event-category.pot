@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the BB Zoom Event Category plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: BB Zoom Event Category 1.2.7\n"
+"Project-Id-Version: BB Zoom Event Category 1.2.9\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/bb-zoom-event-category\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2021-11-02T05:32:05+00:00\n"
+"POT-Creation-Date: 2021-11-02T14:04:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: bb-zoom-event-category\n"
@@ -35,7 +35,7 @@ msgid "Calendar"
 msgstr ""
 
 #. translators: %s: duration in minutes, %s: description, %s: zoom link, %s: zoom id, %s: zoom password
-#: bb-zoom-event-category.php:248
+#: bb-zoom-event-category.php:251
 msgid ""
 "\n"
 "\t\t\t\t\tDuration: %1$s minutes<br>\n"
@@ -48,7 +48,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: admin link
-#: bb-zoom-event-category.php:435
+#: bb-zoom-event-category.php:438
 msgid "Sorry, but this plugin requires the BuddyBoss Platform Pro & The Events Calendar to be installed and active.<br><a href=\"%1$s\">&laquo; Return to Plugins</a>"
 msgstr ""
 

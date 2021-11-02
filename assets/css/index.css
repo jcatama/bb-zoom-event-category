@@ -1,4 +1,4 @@
-#group-calendar-button { font-family: "SF UI Text", sans-serif !important; margin-top: -6px; background: #007CFF !important; cursor: pointer; color: white;border-radius: 100px; font-size: 12px; font-weight: 600; padding: 4px 10px 3px 10px;}
+#group-calendar-button { align-self: flex-start; font-family: "SF UI Text", sans-serif !important; margin-top: 8px; background: #007CFF !important; cursor: pointer; color: white;border-radius: 100px; font-size: 12px; font-weight: 600; padding: 4px 10px 3px 10px;}
 #group-calendar-button a { color: white !important; }
 .single-item.groups .bp-group-meta.bp-group-type { display: flex; }
 #bp-group-edit-calendar-group-event-submit-wrapper { display: none; }
