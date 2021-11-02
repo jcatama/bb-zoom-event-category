@@ -29,12 +29,14 @@ if (!class_exists('BB_Calendar_Group_Setting')) :
 		 * Here you can see more customization of the config options.
 		 */
 		function __construct() {
+
 			$args = [
 				'slug'                => 'calendar-group-event',
 				'name'                => 'Calendar',
 				'nav_item_position'   => 100,
 				'enable_nav_item'     => true,
-				'access'              => [ 'admin', 'mod' ]
+				'access'              => [ 'admin', 'mod' ],
+				'show_tab'            => [ 'admin', 'mod' ],
 			];
 
 			parent::init( $args );
