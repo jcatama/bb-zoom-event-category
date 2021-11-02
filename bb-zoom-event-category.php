@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BB Zoom Event Category
  * Description: Sync copy buddyboss zoom meeting to events category.
- * Version: 1.2.5
+ * Version: 1.2.6
  * Author: John Albert Catama
  * Author URI: https://github.com/jcatama
  * Text Domain: bb-zoom-event-category
@@ -22,7 +22,7 @@ if ( ! defined('BBZEC_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined('BBZEC_VERSION' ) ) {
-	define( 'BBZEC_VERSION', 'v1.2.5' );
+	define( 'BBZEC_VERSION', 'v1.2.6' );
 }
 
 if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
@@ -147,6 +147,37 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 		 */
 		private function create_event( $meeting, $post_args ) {
 
+			if ( $meeting->parent ) {
+				$parent_meeting = BP_Zoom_Meeting::get_meeting_by_meeting_id( $meeting->parent );
+
+				if ( $parent_meeting ) {
+
+					$args = array(
+						'post_type'		 =>	'tribe_events',
+						'meta_query'	 =>	[
+							[
+								'key'    => 'bp_zoom_meeting_id',
+								'value'	 =>	$parent_meeting->id
+							]
+						],
+						'posts_per_page' => 1,
+						'update_post_term_cache' => false
+					);
+
+					$event = new WP_Query( $args );
+
+					if( $event->have_posts() ) {
+						while( $event->have_posts() ) {
+						  $event->the_post();
+						  wp_delete_post( get_the_ID(), true );
+						}
+					}
+
+					wp_reset_postdata();
+
+				}
+			}
+
 			$is_event_created = tribe_create_event( $this->populate_zoom_args( $meeting, $post_args ) );
 
 			if ( $is_event_created ) {
@@ -187,8 +218,32 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 		 */
 		private function populate_zoom_args( $meeting, $post_args ) {
 
-			$zoom_url      = bp_zoom_meeting_get_meta( $meeting->id, 'zoom_join_url', true );
-			$event_content = sprintf(
+			$zoom_url         = '';
+			$zoom_description = '';
+
+			if ( $meeting->parent ) {
+				$parent_meeting = BP_Zoom_Meeting::get_meeting_by_meeting_id( $meeting->parent );
+
+				if ( $parent_meeting ) {
+
+					$zoom_url         = bp_zoom_meeting_get_meta( $parent_meeting->id, 'zoom_join_url', true );
+					$zoom_description = $parent_meeting->description;
+
+				} else {
+
+					$zoom_url         = bp_zoom_meeting_get_meta( $meeting->id, 'zoom_join_url', true );
+					$zoom_description = $meeting->description;
+
+				}
+
+			} else {
+
+				$zoom_url         = bp_zoom_meeting_get_meta( $meeting->id, 'zoom_join_url', true );
+				$zoom_description = $meeting->description;
+
+			}
+
+			$event_content    = sprintf(
 				/* translators: %s: duration in minutes, %s: description, %s: zoom link, %s: zoom id, %s: zoom password */
 				__(
 					'
@@ -202,7 +257,7 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 					'bb-zoom-event-category'
 				),
 				$meeting->duration,
-				$meeting->description,
+				$zoom_description,
 				$zoom_url,
 				$meeting->meeting_id,
 				$meeting->password
@@ -304,7 +359,8 @@ if ( ! class_exists( 'BB_Zoom_Event_Category' ) ) :
 								'value'	 =>	$meeting_id
 							]
 						],
-						'posts_per_page' => 1
+						'posts_per_page' => 1,
+						'update_post_term_cache' => false
 					);
 
 					$event = new WP_Query( $args );
